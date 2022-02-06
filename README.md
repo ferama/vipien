@@ -12,6 +12,6 @@ Run with:
 
 Get the conf with:
 
-    docker exec -it wg cat /config/peers/1.conf
+    docker exec -it vipien cat /config/peers/1.conf
 
     
