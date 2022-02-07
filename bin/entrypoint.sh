@@ -48,6 +48,8 @@ PrivateKey = $server_key
 PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
 EOF
+        chmod go-rw /config/wg0.conf
+
         # create clients dir if not exists
         [ -d /config/peers ] || mkdir -p /config/peers
         nextpeerip=$(nextip $server_address)
@@ -82,33 +84,6 @@ wg_down() {
     done
 }
 
-# creates peer conf
-add_peer() {
-    name=$1
-    if [ ! -e "/config/peers/$name.pub" ]
-    then
-        wg genkey | tee /config/peers/$name.key | wg pubkey > /config/peers/$name.pub
-        server_pub=`cat /config/wg0.pub`
-	    client_key=`cat /config/peers/$name.key`
-    fi
-
-    peer_ip=`cat /config/nextpeerip`
-    nextpeerip=$(nextip $peer_ip)
-    echo $nextpeerip > /config/nextpeerip
-    # create config
-	cat > /config/peers/$name.conf << EOF
-[Interface]
-PrivateKey = $client_key
-Address = $peer_ip/32
-DNS = $DNS
-
-[Peer]
-PublicKey = $server_pub
-AllowedIPs = $ALLOWED_IPS
-Endpoint = $SERVER_PUBLIC_URL:$SERVER_PUBLIC_PORT
-EOF
-}
-
 # Handle shutdown behavior
 finish () {
     echo "$(date): stopping wireguard"
@@ -121,30 +96,42 @@ finish () {
 
 SERVER_PUBLIC_PORT="${SERVER_PUBLIC_PORT:-51820}"
 INTERNAL_SUBNET="${INTERNAL_SUBNET:-10.13.16.0}"
-ALLOWED_IPS="${ALLOWED_IPS:-0.0.0.0/0}" # vpn routed ips / net
 PEERS_COUNT=${PEERS_COUNT:-1}
-
+ALLOWED_IPS="${ALLOWED_IPS:-0.0.0.0/0}" # vpn routed ips / net
 SERVER_PUBLIC_URL="${SERVER_PUBLIC_URL:-$(guess_public_ip)}"
-DNS=$(cat /etc/resolv.conf  | grep nameserver | awk '{print $2}')
+
+if [ -z $DNS ]
+then
+    DNS=$(cat /etc/resolv.conf  | grep nameserver | awk '{print $2}' | tr '\n' ',' | head -c -1)
+fi
+
+# export vars to the add-peer script
+echo "export SERVER_PUBLIC_URL=$SERVER_PUBLIC_URL"  >> $HOME/vipien-env
+echo "export SERVER_PUBLIC_PORT=$SERVER_PUBLIC_PORT" >> $HOME/vipien-env
+echo "export ALLOWED_IPS=$ALLOWED_IPS" >> $HOME/vipien-env
+echo "export DNS=$DNS" >> $HOME/vipien-env
+
 
 echo "==========================================="
-printf "%-20s %s\n" "Server port" "$SERVER_PUBLIC_PORT"
-printf "%-20s %s\n" "Internal subnet" "$INTERNAL_SUBNET"
-printf "%-20s %s\n" "Allowed Ips" "$ALLOWED_IPS"
 printf "%-20s %s\n" "Server Url" "$SERVER_PUBLIC_URL"
+printf "%-20s %s\n" "Server port" "$SERVER_PUBLIC_PORT"
+printf "%-20s %s\n" "Allowed Ips" "$ALLOWED_IPS"
 printf "%-20s %s\n" "DNS" "$DNS"
+printf "%-20s %s\n" "Internal subnet" "$INTERNAL_SUBNET"
+echo "==========================================="
 
 sysctl -w net.ipv4.conf.all.src_valid_mark=1
 sysctl -w net.ipv4.ip_forward=1
 
 init_config
 for i in $(seq 1 $PEERS_COUNT); do 
-    add_peer $i
+    add-peer $i
 done
 wg_up
 trap finish TERM INT QUIT
 
-while inotifywait -e modify -e create /config
+# reload conf on changes
+while inotifywait -r -e modify -e create /config
 do
 	wg_down
 	wg_up

@@ -1,8 +1,3 @@
-#  docker run --rm -it --name wg \
-# 	--cap-add sys_module \
-# 	--cap-add net_admin \
-# 	-p 51820:51820/udp wg
-
 FROM ubuntu:latest
 
 RUN set -eux; \
@@ -25,5 +20,7 @@ RUN \
 
 VOLUME /config
 
-COPY ./entrypoint.sh /
-ENTRYPOINT ["/entrypoint.sh"]
+EXPOSE 51820/udp
+
+COPY ./bin/* /usr/local/bin/
+ENTRYPOINT ["entrypoint.sh"]

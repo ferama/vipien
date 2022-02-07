@@ -1,0 +1,43 @@
+#!/bin/bash
+
+. $HOME/vipien-env
+
+nextip() {
+    ip=$1
+    ip_hex=$(printf '%.2X%.2X%.2X%.2X\n' `echo $ip | sed -e 's/\./ /g'`)
+    next_ip_hex=$(printf %.8X `echo $(( 0x$ip_hex + 1 ))`)
+    next_ip=$(printf '%d.%d.%d.%d\n' `echo $next_ip_hex | sed -r 's/(..)/0x\1 /g'`)
+    echo "$next_ip"
+}
+
+# creates peer conf
+add_peer() {
+    name=$1
+    if [ ! -e "/config/peers/$name.pub" ]
+    then
+        wg genkey | tee /config/peers/$name.key | wg pubkey > /config/peers/$name.pub
+        server_pub=`cat /config/wg0.pub`
+	    client_key=`cat /config/peers/$name.key`
+    fi
+
+    peer_ip=`cat /config/nextpeerip`
+    nextpeerip=$(nextip $peer_ip)
+    echo $nextpeerip > /config/nextpeerip
+    # create config
+	cat > /config/peers/$name.conf << EOF
+[Interface]
+PrivateKey = $client_key
+Address = $peer_ip/32
+DNS = $DNS
+
+[Peer]
+PublicKey = $server_pub
+AllowedIPs = $ALLOWED_IPS
+Endpoint = $SERVER_PUBLIC_URL:$SERVER_PUBLIC_PORT
+EOF
+    echo "=========== /config/peers/$name.conf ==========="
+    cat /config/peers/$name.conf
+    echo "=============================================="
+}
+
+add_peer $1
