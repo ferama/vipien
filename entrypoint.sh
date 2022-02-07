@@ -136,9 +136,6 @@ printf "%-20s %s\n" "DNS" "$DNS"
 echo "==========================================="
 
 
-sysctl -w net.ipv4.ip_forward=1
-sysctl -w net.ipv4.conf.all.src_valid_mark=1
-
 init_config
 for i in $(seq 1 $PEERS_COUNT); do 
     add_peer $i
