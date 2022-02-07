@@ -42,7 +42,7 @@ init_config() {
 
         cat > /config/wg0.conf << EOF
 [Interface]
-Address = $server_address/24
+Address = $server_address/16
 ListenPort = 51820
 PrivateKey = $server_key
 PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
