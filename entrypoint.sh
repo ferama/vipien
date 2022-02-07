@@ -7,11 +7,11 @@ guess_public_ip() {
             echo "$(date): running in k8s but no SERVIVCE_NAME env set"
             exit 1
         fi
-        kubectl config set-cluster vpn --server=https://kubernetes.default --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-        kubectl config set-context vpn --cluster=vpn
-        kubectl config set-credentials user --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-        kubectl config set-context vpn --user=user
-        kubectl config use-context vpn
+        kubectl config set-cluster vpn --server=https://kubernetes.default --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt 2>&1 > /dev/null
+        kubectl config set-context vpn --cluster=vpn 2>&1 > /dev/null
+        kubectl config set-credentials user --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) 2>&1 > /dev/null
+        kubectl config set-context vpn --user=user 2>&1 > /dev/null
+        kubectl config use-context vpn 2>&1 > /dev/null
         server_url=$(kubectl get svc $SERVICE_NAME -o=jsonpath="{.status.loadBalancer.ingress[0].ip}")
         echo $server_url
         return
@@ -124,7 +124,7 @@ INTERNAL_SUBNET="${INTERNAL_SUBNET:-10.13.16.0}"
 ALLOWED_IPS="${ALLOWED_IPS:-0.0.0.0/0}" # vpn routed ips / net
 PEERS_COUNT=${PEERS_COUNT:-1}
 
-SERVER_PUBLIC_URL="${SERVER_PUBLIC_URL-$(guess_public_ip)}"
+SERVER_PUBLIC_URL="${SERVER_PUBLIC_URL:-$(guess_public_ip)}"
 DNS=$(cat /etc/resolv.conf  | grep nameserver | awk '{print $2}')
 
 echo "==========================================="
