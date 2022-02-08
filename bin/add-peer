@@ -15,6 +15,15 @@ nextip() {
 # creates peer conf
 add_peer_real() {
     name=$1
+    if [ -z $name ]
+    then
+        echo "peer-name cannot be empty"
+        echo "Usage: add-peer peer-name"
+        exit 1
+    fi
+    # name slugify
+    name=$(echo $name | iconv -t ascii//TRANSLIT | sed -r s/[^a-zA-Z0-9]+/-/g | sed -r s/^-+\|-+$//g | tr A-Z a-z)
+
     if [ ! -e "/config/peers/$name.pub" ]
     then
         wg genkey | tee /config/peers/$name.key | wg pubkey > /config/peers/$name.pub

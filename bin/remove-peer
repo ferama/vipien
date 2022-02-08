@@ -6,6 +6,13 @@
 
 remove_peer_real() {
     name=$1
+    if [ -z $name ]
+    then
+        echo "peer-name cannot be empty"
+        echo "Usage: remove-peer peer-name"
+        exit 1
+    fi
+    
     conf="/config/peers/$name.conf"
     if [ ! -e $conf ]
     then
