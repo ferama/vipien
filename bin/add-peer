@@ -11,6 +11,7 @@ nextip() {
     echo "$next_ip"
 }
 
+
 # creates peer conf
 add_peer_real() {
     name=$1
@@ -20,9 +21,23 @@ add_peer_real() {
         server_pub=`cat /config/wg0.pub`
 	    client_key=`cat /config/peers/$name.key`
 
-        peer_ip=`cat /config/nextpeerip`
-        nextpeerip=$(nextip $peer_ip)
-        echo $nextpeerip > /config/nextpeerip
+        recycled_ips_file="/config/recycled_ips"
+
+        peer_ip=""
+        if [ -e "$recycled_ips_file" ]
+        then
+            # extract first line
+            peer_ip=$(head -n 1 $recycled_ips_file)
+            # remove first line from file
+            sed -i 1d $recycled_ips_file
+        fi
+        if [ -z $peer_ip ]
+        then
+            peer_ip=`cat /config/nextpeerip`
+            nextpeerip=$(nextip $peer_ip)
+            echo $nextpeerip > /config/nextpeerip
+        fi
+
         # create config
         cat > /config/peers/$name.conf << EOF
 [Interface]
