@@ -1,6 +1,7 @@
 #!/bin/bash
 
-. $HOME/vipien-env
+# loads conf. This env is set from entrypoint.sh script
+. /config/vipien-env
 
 nextip() {
     ip=$1
@@ -11,20 +12,19 @@ nextip() {
 }
 
 # creates peer conf
-add_peer() {
+add_peer_real() {
     name=$1
     if [ ! -e "/config/peers/$name.pub" ]
     then
         wg genkey | tee /config/peers/$name.key | wg pubkey > /config/peers/$name.pub
         server_pub=`cat /config/wg0.pub`
 	    client_key=`cat /config/peers/$name.key`
-    fi
 
-    peer_ip=`cat /config/nextpeerip`
-    nextpeerip=$(nextip $peer_ip)
-    echo $nextpeerip > /config/nextpeerip
-    # create config
-	cat > /config/peers/$name.conf << EOF
+        peer_ip=`cat /config/nextpeerip`
+        nextpeerip=$(nextip $peer_ip)
+        echo $nextpeerip > /config/nextpeerip
+        # create config
+        cat > /config/peers/$name.conf << EOF
 [Interface]
 PrivateKey = $client_key
 Address = $peer_ip/32
@@ -35,9 +35,22 @@ PublicKey = $server_pub
 AllowedIPs = $ALLOWED_IPS
 Endpoint = $SERVER_PUBLIC_URL:$SERVER_PUBLIC_PORT
 EOF
-    echo "=========== /config/peers/$name.conf ==========="
-    cat /config/peers/$name.conf
-    echo "=============================================="
+        echo "=========== /config/peers/$name.conf ==========="
+        cat /config/peers/$name.conf
+        echo "=============================================="
+    else
+        echo "A peer with name $name is already configured"
+        exit 1
+    fi
+}
+
+add_peer() {
+    # https://gist.github.com/jpclipffel/0b8f470be029fc9e3f07
+    touch $VIPIEN_LOCKFILE
+    exec {FD}<>$VIPIEN_LOCKFILE
+    if flock $FD; then  
+        add_peer_real $1
+    fi
 }
 
 add_peer $1
