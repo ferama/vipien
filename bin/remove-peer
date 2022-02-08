@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# loads conf. This env is set from entrypoint.sh script
+. /config/vipien-env
+
+
+remove_peer_real() {
+    name=$1
+    conf="/config/peers/$name.conf"
+    if [ ! -e $conf ]
+    then
+        echo "A peer named $name doesn't exists"
+        exit 1
+    fi
+    peer_ip=$(grep Address $conf | awk '{ print $3 }' | head -c -4)
+    echo $peer_ip >> /config/recycled_ips
+    rm /config/peers/$name.conf
+    rm /config/peers/$name.key
+    rm /config/peers/$name.pub
+    echo "Peer named $name with ip address $peer_ip removed"
+}
+
+remove_peer() {
+    # https://gist.github.com/jpclipffel/0b8f470be029fc9e3f07
+    touch $VIPIEN_LOCKFILE
+    exec {FD}<>$VIPIEN_LOCKFILE
+    if flock $FD; then  
+        remove_peer_real $1
+    fi
+}
+
+remove_peer $1

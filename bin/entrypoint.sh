@@ -106,10 +106,11 @@ then
 fi
 
 # export vars to the add-peer script
-echo "export SERVER_PUBLIC_URL=$SERVER_PUBLIC_URL"  >> $HOME/vipien-env
-echo "export SERVER_PUBLIC_PORT=$SERVER_PUBLIC_PORT" >> $HOME/vipien-env
-echo "export ALLOWED_IPS=$ALLOWED_IPS" >> $HOME/vipien-env
-echo "export DNS=$DNS" >> $HOME/vipien-env
+echo "SERVER_PUBLIC_URL=$SERVER_PUBLIC_URL"  >> /config/vipien-env
+echo "SERVER_PUBLIC_PORT=$SERVER_PUBLIC_PORT" >> /config/vipien-env
+echo "ALLOWED_IPS=$ALLOWED_IPS" >> /config/vipien-env
+echo "DNS=$DNS" >> /config/vipien-env
+echo "VIPIEN_LOCKFILE=/var/run/vipien.lock" >> /config/vipien-env
 
 
 echo "==========================================="
