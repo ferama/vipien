@@ -1,3 +1,12 @@
+# go backend builder
+FROM golang:1.17 as gobuilder
+WORKDIR /app
+COPY . .
+RUN go build \
+	-ldflags="-s -w" \
+    -o /vipien .
+
+
 FROM ubuntu:latest
 
 RUN set -eux; \
@@ -20,7 +29,13 @@ RUN \
 
 VOLUME /config
 
+# wireguard
 EXPOSE 51820/udp
 
+# rest api
+EXPOSE 8080/tcp
+
 COPY ./bin/* /usr/local/bin/
+COPY --from=gobuilder /vipien /usr/local/bin/vipien
+
 ENTRYPOINT ["entrypoint.sh"]

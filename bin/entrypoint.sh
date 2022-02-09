@@ -99,6 +99,7 @@ INTERNAL_SUBNET="${INTERNAL_SUBNET:-10.13.16.0}"
 PEERS_COUNT=${PEERS_COUNT:-1}
 ALLOWED_IPS="${ALLOWED_IPS:-0.0.0.0/0}" # vpn routed ips / net
 SERVER_PUBLIC_URL="${SERVER_PUBLIC_URL:-$(guess_public_ip)}"
+ENABLE_REST_API="${ENABLE_REST_API-0}"
 
 if [ -z $DNS ]
 then
@@ -130,6 +131,11 @@ for i in $(seq 1 $PEERS_COUNT); do
 done
 wg_up
 trap finish TERM INT QUIT
+
+if [ $ENABLE_REST_API != 0 ]
+then
+    GIN_MODE=release vipien &
+fi
 
 # reload conf on changes
 while inotifywait -r -e modify -e create /config

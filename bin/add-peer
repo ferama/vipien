@@ -59,9 +59,7 @@ PublicKey = $server_pub
 AllowedIPs = $ALLOWED_IPS
 Endpoint = $SERVER_PUBLIC_URL:$SERVER_PUBLIC_PORT
 EOF
-        echo "=========== /config/peers/$name.conf ==========="
         cat /config/peers/$name.conf
-        echo "=============================================="
     else
         echo "A peer with name $name is already configured"
         exit 1
