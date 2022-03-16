@@ -3,9 +3,11 @@ package api
 import (
 	"context"
 	"net/http"
+	"sync"
 
 	"github.com/ferama/vipien/pkg/protocol"
 	"github.com/gin-gonic/gin"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -65,24 +67,36 @@ func (k *k8sRoutes) getServices(c *gin.Context) {
 		Services: make([]service, 0),
 	}
 
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
 	for _, item := range services.Items {
-		ports := make([]port, 0)
-		for _, p := range item.Spec.Ports {
-			isHttp := false
-			if p.Protocol == "TCP" {
-				isHttp = protocol.IsHttp(item.Name, p.Port, namespace)
+		wg.Add(1)
+		go func(item v1.Service) {
+			ports := make([]port, 0)
+			for _, p := range item.Spec.Ports {
+
+				isHttp := false
+				if p.Protocol == "TCP" {
+					isHttp = protocol.IsHttp(item.Name, p.Port, namespace)
+				}
+				ports = append(ports, port{
+					Protcol: string(p.Protocol),
+					Port:    p.Port,
+					IsHttp:  isHttp,
+				})
 			}
-			ports = append(ports, port{
-				Protcol: string(p.Protocol),
-				Port:    p.Port,
-				IsHttp:  isHttp,
-			})
-		}
-		s := service{
-			Name:  item.Name,
-			Ports: ports,
-		}
-		res.Services = append(res.Services, s)
+			s := service{
+				Name:  item.Name,
+				Ports: ports,
+			}
+			mu.Lock()
+			res.Services = append(res.Services, s)
+			mu.Unlock()
+
+			wg.Done()
+		}(item)
 	}
+	wg.Wait()
 	c.JSON(http.StatusOK, res)
 }

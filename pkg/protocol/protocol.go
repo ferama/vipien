@@ -1,23 +1,18 @@
 package protocol
 
+import (
+	"fmt"
+	"net/http"
+	"time"
+)
+
 func IsHttp(svc string, port int32, namespace string) bool {
-	return false
+	url := fmt.Sprintf("http://%s.%s:%d", svc, namespace, port)
 
-	// uri := fmt.Sprintf("%s:%d", svc, port)
-	// conn, err := net.Dial("tcp", uri)
-	// if err != nil {
-	// 	return false
-	// }
+	client := http.Client{
+		Timeout: 1000 * time.Millisecond,
+	}
+	_, err := client.Get(url)
 
-	// conn.Write([]byte("GET .\n"))
-
-	// buf := make([]byte, 4)
-
-	// conn.SetReadDeadline(time.Now().Add(time.Second))
-	// _, err = conn.Read(buf)
-	// if err != nil {
-	// 	return false
-	// }
-	// res := string(buf)
-	// return strings.ToUpper(res) == "HTTP"
+	return err == nil
 }
