@@ -2,9 +2,14 @@ package main
 
 import (
 	"flag"
+	"io/fs"
+	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/ferama/vipien/pkg/api"
+	"github.com/ferama/vipien/pkg/ui"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -47,8 +52,27 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"*"},
+		AllowHeaders:     []string{"Content-Type, Origin"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
 	api.RootRoutes(r.Group("/api"))
 	api.PeerRoutes(configRoot, r.Group("/api/peers"))
 	api.K8sRoutes(clientset, r.Group("/api/k8s"))
+
+	// static files custom middleware
+	// use the "build" dir (the webpack target) as static root
+	fsRoot, _ := fs.Sub(ui.StaticFiles, "build")
+	fileserver := http.FileServer(http.FS(fsRoot))
+	r.Use(func(c *gin.Context) {
+		fileserver.ServeHTTP(c.Writer, c.Request)
+		c.Abort()
+	})
+
 	r.Run()
 }

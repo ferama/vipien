@@ -27,14 +27,17 @@ func (k *k8sRoutes) getNamespaces(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadGateway, nil)
 	}
+	type nsItem struct {
+		Name string `json:"name"`
+	}
 	type response struct {
-		Namespaces []string `json:"namespaces"`
+		Namespaces []nsItem `json:"namespaces"`
 	}
 	res := &response{
-		Namespaces: make([]string, 0),
+		Namespaces: make([]nsItem, 0),
 	}
 	for _, item := range namespaces.Items {
-		res.Namespaces = append(res.Namespaces, item.Name)
+		res.Namespaces = append(res.Namespaces, nsItem{Name: item.Name})
 	}
 	c.JSON(http.StatusOK, res)
 }
