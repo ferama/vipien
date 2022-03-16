@@ -1,10 +1,7 @@
 import React from 'react'
 import { http } from '../lib/Axios'
 import { Table, PageHeader } from 'antd';
-import { Row, Col, Button } from 'antd';
-import {
-    DeleteOutlined,
-  } from '@ant-design/icons';
+import { Row, Col } from 'antd';
 
 export class Services extends React.Component {
     constructor(props) {
@@ -31,7 +28,6 @@ export class Services extends React.Component {
         } catch {
             return
         }
-        console.log(data.data)
         if (data.data === null) {
             this.setState({
                 services: []
@@ -58,25 +54,25 @@ export class Services extends React.Component {
                 dataIndex: 'name',
                 key: '1',
             },
-            // {
-            //     title: 'Action',
-            //     key: '7',
-            //     render: (_, record) =>  (
-            //         <React.Fragment>
-            //             {record.IsStoppable?(
-            //                 <Button onClick={ (e) => this.onDelete(record.Id)} >
-            //                 <DeleteOutlined /> 
-            //                 </Button>
-            //             ):""}
-            //         </React.Fragment>
-            //     ),
-            // }
+            {
+                title: 'Ports',
+                dataIndex: 'ports',
+                key: '2',
+                render: (_, record) => {
+                    let ports = ""
+                    for (let p of record.ports) {
+                        ports += `${p.port}/${p.protocol} `
+                    }
+                    return ports
+                }
+            },
         ]
+        const title = `${this.props.match.params.namespace} / services`
         return (
             <React.Fragment>
                 <Row>
                     <Col flex="auto">
-                        <PageHeader title="Services" />
+                        <PageHeader title={title} />
                     </Col>    
                 </Row>
                 <Table columns={columns} dataSource={this.state.services} />
