@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/ferama/vipien/pkg/protocol"
 	"github.com/gin-gonic/gin"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -51,6 +52,7 @@ func (k *k8sRoutes) getServices(c *gin.Context) {
 	type port struct {
 		Protcol string `json:"protocol"`
 		Port    int32  `json:"port"`
+		IsHttp  bool   `json:"isHttp"`
 	}
 	type service struct {
 		Name  string `json:"name"`
@@ -66,9 +68,14 @@ func (k *k8sRoutes) getServices(c *gin.Context) {
 	for _, item := range services.Items {
 		ports := make([]port, 0)
 		for _, p := range item.Spec.Ports {
+			isHttp := false
+			if p.Protocol == "TCP" {
+				isHttp = protocol.IsHttp(item.Name, p.Port, namespace)
+			}
 			ports = append(ports, port{
 				Protcol: string(p.Protocol),
 				Port:    p.Port,
+				IsHttp:  isHttp,
 			})
 		}
 		s := service{
