@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -46,9 +45,13 @@ func (k *k8sRoutes) getServices(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadGateway, nil)
 	}
+	type port struct {
+		Protcol string `json:"protocol"`
+		Port    int32  `json:"port"`
+	}
 	type service struct {
-		Name  string           `json:"services"`
-		Ports []v1.ServicePort `json:"ports"`
+		Name  string `json:"name"`
+		Ports []port `json:"ports"`
 	}
 	type response struct {
 		Services []service `json:"services"`
@@ -58,9 +61,16 @@ func (k *k8sRoutes) getServices(c *gin.Context) {
 	}
 
 	for _, item := range services.Items {
+		ports := make([]port, 0)
+		for _, p := range item.Spec.Ports {
+			ports = append(ports, port{
+				Protcol: string(p.Protocol),
+				Port:    p.Port,
+			})
+		}
 		s := service{
 			Name:  item.Name,
-			Ports: item.Spec.Ports,
+			Ports: ports,
 		}
 		res.Services = append(res.Services, s)
 	}
