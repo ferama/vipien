@@ -1,8 +1,15 @@
+FROM node:16-alpine as uibuilder
+WORKDIR /src
+COPY pkg/ui .
+RUN npm install && npm run build
+
 # go backend builder
 FROM golang:1.17 as gobuilder
 WORKDIR /app
 COPY . .
+COPY --from=uibuilder /src/build pkg/ui/build
 RUN go build \
+	-trimpath \
 	-ldflags="-s -w" \
     -o /vipien .
 
