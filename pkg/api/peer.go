@@ -80,11 +80,18 @@ func (p *peerRoutes) list(c *gin.Context) {
 func (p *peerRoutes) delete(c *gin.Context) {
 	peerName := c.Param("name")
 
+	// prevent deletion of the root peer
+	if peerName == "1" {
+		c.JSON(http.StatusOK, "")
+		return
+	}
+
 	out, err := exec.Command("remove-peer", peerName).Output()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 	type response struct {
 		Message string `json:"message"`
@@ -114,6 +121,7 @@ func (p *peerRoutes) add(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 	type response struct {
 		Message string `json:"message"`

@@ -36,6 +36,13 @@ class SiderLayout extends React.Component {
       fontWeight: "bold",
       paddingLeft: 20
     }
+
+    let pathComponents = location.pathname.split("/")
+    let selectedMenu = location.pathname
+    if (pathComponents.length > 1) {
+      selectedMenu = "/" + pathComponents[1]
+    }
+
     return (
       <Layout style={{ minHeight: '100vh' }}>
         <Sider collapsible collapsed={collapsed} onCollapse={this.onCollapse}>
@@ -44,10 +51,16 @@ class SiderLayout extends React.Component {
           </Header>
           <Menu theme="dark" 
                   defaultSelectedKeys={['/']}
-                  selectedKeys={[location.pathname]}
+                  selectedKeys={[selectedMenu]}
                   mode="inline">
             <Menu.Item key="/" icon={<HomeOutlined />}>
-                <Link to="/">Home</Link>
+              <Link to="/">Home</Link>
+            </Menu.Item>
+            <Menu.Item key="/namespaces" icon={<HomeOutlined />}>
+              <Link to="/namespaces">Namespaces</Link>
+            </Menu.Item>
+            <Menu.Item key="/peers" icon={<HomeOutlined />}>
+              <Link to="/peers">Peers</Link>
             </Menu.Item>
           </Menu>
         </Sider>

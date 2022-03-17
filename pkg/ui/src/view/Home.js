@@ -44,7 +44,7 @@ export class Home extends React.Component {
                 dataIndex: 'name',
                 key: '1',
                 render: item => {
-                    const path = `/services/${item}`
+                    const path = `/namespaces/${item}/services`
                     return (<Link to={path}>{item}</Link>)
                 }
             }
@@ -59,7 +59,7 @@ export class Home extends React.Component {
                         return {
                           onClick: event => {
                             //   console.log(event)
-                              console.log(record)
+                            //   console.log(record)
                           }
                         }
                     }}
