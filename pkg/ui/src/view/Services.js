@@ -34,6 +34,13 @@ export class Services extends React.Component {
         let i = 0
         for (let s of data.data.services) {
             s["key"] = ++i
+            let httpUrls = []
+            for (let port of s.ports) {
+                // if (port.isHttp) {
+                    httpUrls.push(`http://${s.name}.${namespace}.svc.cluster.local:${port.port}`)
+                // }
+            }
+            s["httpUrls"] = httpUrls
             svcs.push(s)
         }
 
@@ -61,6 +68,16 @@ export class Services extends React.Component {
                     return ports
                 }
             },
+            {
+                title: 'Urls',
+                dataIndex: 'httpUrls',
+                key: '3',
+                render: (_, record) => {
+                    return record.httpUrls.map( url => 
+                        <div><a target="_blank" href={url}>{url}</a></div>
+                    )
+                }
+            }
         ]
         const title = `${this.props.match.params.namespace} / services`
         return (
