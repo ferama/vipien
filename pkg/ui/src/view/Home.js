@@ -2,7 +2,6 @@ import React, { Fragment } from 'react';
 import { http } from '../lib/Axios'
 import { PageHeader, Table } from 'antd';
 import {
-    withRouter,
     Link
   } from "react-router-dom";
 
@@ -12,15 +11,9 @@ export class Home extends React.Component {
         this.state = {
             "ns": [],
         }
-        this.intervalHandler = null
     }
     async componentDidMount() {
         await this.updateState()
-        this.intervalHandler = setInterval(this.updateState, 5000)
-    }
-
-    componentWillUnmount() {
-        clearInterval(this.intervalHandler)
     }
 
     updateState = async () => {

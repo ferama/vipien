@@ -9,15 +9,10 @@ export class Services extends React.Component {
         this.state = {
             servicices: [],
         }
-        this.intervalHandler = null
     }
 
     async componentDidMount() {
         await this.getAll()
-        this.intervalHandler = setInterval(this.getAll, 5000)
-    }
-    componentWillUnmount() {
-        clearInterval(this.intervalHandler)
     }
 
     getAll = async () => {
