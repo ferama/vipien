@@ -60,6 +60,10 @@ AllowedIPs = $ALLOWED_IPS
 Endpoint = $SERVER_PUBLIC_URL:$SERVER_PUBLIC_PORT
 EOF
         cat /config/peers/$name.conf
+
+        # enable peer
+        pub=`cat /config/peers/$name.pub`
+		wg set wg0 peer $pub allowed-ips $peer_ip
     else
         echo "A peer with name $name is already configured"
         exit 1

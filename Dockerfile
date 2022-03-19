@@ -21,7 +21,6 @@ RUN set -eux; \
 	apt-get install -y --no-install-recommends \
 		ca-certificates \
 		wireguard-tools \
-		inotify-tools \
 		iptables \
 		iproute2 \
 		net-tools \

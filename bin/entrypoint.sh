@@ -132,14 +132,9 @@ done
 wg_up
 trap finish TERM INT QUIT
 
-if [ $ENABLE_UI ]
+if [ $ENABLE_UI != 0 ]
 then
-    GIN_MODE=release vipien &
+    GIN_MODE=release vipien
+else
+    sleep infinity
 fi
-
-# reload conf on changes
-while inotifywait -r -e modify -e create /config
-do
-	wg_down
-	wg_up
-done

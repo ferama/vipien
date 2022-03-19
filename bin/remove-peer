@@ -21,6 +21,10 @@ remove_peer_real() {
     fi
     peer_ip=$(grep Address $conf | awk '{ print $3 }' | head -c -4)
     echo $peer_ip >> /config/recycled_ips
+    
+    pub=`cat /config/peers/$name.pub`
+    wg set wg0 peer $pub remove
+
     rm /config/peers/$name.conf
     rm /config/peers/$name.key
     rm /config/peers/$name.pub
