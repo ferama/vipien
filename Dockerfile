@@ -4,7 +4,7 @@ COPY pkg/ui .
 RUN npm install && npm run build
 
 # go backend builder
-FROM golang:1.17 as gobuilder
+FROM golang:1.18 as gobuilder
 WORKDIR /app
 COPY . .
 COPY --from=uibuilder /src/build pkg/ui/build
